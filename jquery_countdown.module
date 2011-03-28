@@ -219,8 +219,10 @@ function jquery_countdown_field_formatter_view($entity_type, $entity, $field, $i
           $vars['delta'] = $delta;
           $vars['item'] = $item;
           $vars['id'] = $instance['field_name'] . '-' . $instance['id']; // use field as unique id
-          $vars['options']['until'] = date("F d, Y g:i a", strtotime($item['value'])); // get date from start field
+          $vars['options']['until'] = date("F d, Y g:i a +0000", strtotime($item['value'])); // get date from start field
+
           $element[$delta] = array('#markup' => theme('jquery_countdown', $vars));
+
         }
       }    
     break;
