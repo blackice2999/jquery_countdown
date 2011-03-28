@@ -80,7 +80,6 @@ function _jquery_countdown_block_content($delta = '') {
   $format .= preg_match("/%hours/", $msg_format)? 'H' : $format;
   $format .= preg_match("/%minutes/", $msg_format)? 'M' : $format;
   $format .= preg_match("/%seconds/", $msg_format)? 'S' : $format;
-
   $event_name = variable_get('jquery_countdown_event_name', '');
   
   $until = date("F d, Y g:i a", strtotime(variable_get('jquery_countdown_target', '')));
@@ -159,6 +158,76 @@ function jquery_countdown_add($selector = NULL, $options = array()) {
    
    return $libraries;
  }
+
+/**
+ * Implements hook_field_formatter_info().
+ * provides the jquery_countdown formatter for use with date field
+ * @TODO: setting like first or last field and much more...
+ * @TODO: check for existing date module!
+ */
+function jquery_countdown_field_formatter_info() {
+  $formatters = array(
+    'jquery_countdown' => array(
+      'label' => t('jQuery Countdown'),
+      'field types' => array('date', 'datestamp', 'datetime'),
+    ),
+  );
+  return $formatters;
+}
+
+function jquery_countdown_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+  $formatter = $display['type'];
+
+  $vars = array(
+    'entity' => $entity,
+    'entity_type' => $entity_type,
+    'field' => $field,
+    'instance' => $instance,
+    'langcode' => $langcode,
+    'items' => $items,
+    'display' => $display,
+    'dates' => array(),
+    'options' => array(
+      'until' => date("F d, Y g:i a", time()), // default time to prevent errors
+      'format' => 'DHMS',
+      'description' => '',
+    ),
+  );
+
+  // See if we are only supposed to display a selected
+  // item from multiple value date fields.
+  $selected_deltas = array();
+  if (!empty($entity->date_id)) {
+    foreach ((array) $entity->date_id as $key => $id) {
+      list($module, $nid, $field_name, $selected_delta, $other) = explode(':', $id);
+      if ($field_name == $field['field_name']) {
+        $selected_deltas[] = $selected_delta;
+      }
+    }
+  }
+
+  switch ($display['type']) {
+    case 'jquery_countdown':
+    default:
+      foreach ($items as $delta => $item) {
+        if (!empty($entity->date_id) && !in_array($delta, $selected_deltas)) {
+          continue;
+        }
+        else {
+          $vars['delta'] = $delta;
+          $vars['item'] = $item;
+          $vars['id'] = $instance['field_name'] . '-' . $instance['id']; // use field as unique id
+          $vars['options']['until'] = date("F d, Y g:i a", strtotime($item['value'])); // get date from start field
+          $element[$delta] = array('#markup' => theme('jquery_countdown', $vars));
+        }
+      }    
+    break;
+  }
+  
+  return $element;
+}
 
 /**
  * Implementation of hook_theme().
