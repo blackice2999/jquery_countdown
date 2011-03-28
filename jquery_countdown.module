@@ -169,6 +169,7 @@ function jquery_countdown_theme($existing, $type, $theme, $path) {
       'variables' => array(
         'options' => NULL,
         'id' => NULL,
+        'content' => NULL,
       ),
     ),
   );
@@ -189,13 +190,14 @@ function theme_jquery_countdown($variables) {
   //@TODO: add javascript fallback for target time as possible $content ?!
   $id = $variables['id'];
   $options = $variables['options'];
-  dpm($variables);
+  $content = $variables['content'];
+
   // Construct the ID name and add the JavaScript.
   $id = drupal_html_id($id);
   // add the Javascript
   jquery_countdown_add('#'. $id, $options);
 
   // Construct the HTML.
-  return '<div id="' . $id . '" class="jquery-countdown"></div>';
+  return '<div id="' . $id . '" class="jquery-countdown">' . $content . '</div>';
 }
 
